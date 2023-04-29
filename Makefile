@@ -18,4 +18,4 @@ runsimd: simd
 	@xdg-open $(PIC_NAME)
 
 clean:
-	rm -f seq simd
+	rm -f seq simd $(PIC_NAME)
