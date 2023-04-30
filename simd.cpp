@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
   double jj = ((upper - lower) / height);
   double ii = ((right - left) / width);
 
-#pragma omp parallel for
+#pragma omp parallel for collapse(2)
   for (int j = 0; j < height; ++j) {
     for (int i = 0; i < width; i += vec_size) { // tiling to 8.
 
