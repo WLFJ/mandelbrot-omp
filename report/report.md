@@ -48,37 +48,37 @@ time elapsed: 0.297305
 ```
 Samples: 3K of event 'cycles:u', 4000 Hz, Event count (approx.): 2533801464
 main._omp_fn.0  /home/yveswong/mandelbrot-omp/simd [Percent: local period]
-Percent│       vmovsd      (%rcx),%xmm3
-       │     if (!finished[v] && __builtin_expect(dis > 4, 0)) {
- 16.92 │       cmpb        $0x0,(%rdi,%rdx,1)
-       │     auto const yyyy = yy[v] * yy[v];
-  0.03 │       vmulsd      %xmm3,%xmm3,%xmm5
-       │     double x0 = (i + v) * ii + left;
-       │       vmovsd      %xmm0,%xmm0,%xmm1
-       │     auto const xxxx = xx[v] * xx[v];
- 14.34 │       vmovsd      (%rax),%xmm0
-       │     double x0 = (i + v) * ii + left;
-       │       vfmadd132sd %xmm9,%xmm10,%xmm1
-       │     auto const xxxx = xx[v] * xx[v];
-       │       vmulsd      %xmm0,%xmm0,%xmm4
-       │     auto const xxyy = xx[v] * yy[v];
-       │       vmulsd      %xmm3,%xmm0,%xmm3
-       │     newxx[v] = xxxx - yyyy + x0;
- 18.09 │       vsubsd      %xmm5,%xmm4,%xmm2
-       │     newyy[v] = 2 * xxyy + y0;
-       │       vfmadd132sd %xmm8,%xmm6,%xmm3
-       │     newxx[v] = xxxx - yyyy + x0;
-  0.28 │       vaddsd      %xmm1,%xmm2,%xmm1
-       │     yy[v] = newyy[v];
-  0.03 │       vmovsd      %xmm3,(%rcx)
-       │     xx[v] = newxx[v];
- 13.50 │       vmovsd      %xmm1,(%rax)
-       │     if (!finished[v] && __builtin_expect(dis > 4, 0)) {
-  1.14 │     ↓ jne         19c
-       │     auto const dis = xxxx + yyyy;
-  0.03 │       vaddsd      %xmm5,%xmm4,%xmm4
-       │     if (!finished[v] && __builtin_expect(dis > 4, 0)) {
-       │       vcomisd     %xmm11,%xmm4
+Percent+       vmovsd      (%rcx),%xmm3
+       +     if (!finished[v] && __builtin_expect(dis > 4, 0)) {
+ 16.92 +       cmpb        $0x0,(%rdi,%rdx,1)
+       +     auto const yyyy = yy[v] * yy[v];
+  0.03 +       vmulsd      %xmm3,%xmm3,%xmm5
+       +     double x0 = (i + v) * ii + left;
+       +       vmovsd      %xmm0,%xmm0,%xmm1
+       +     auto const xxxx = xx[v] * xx[v];
+ 14.34 +       vmovsd      (%rax),%xmm0
+       +     double x0 = (i + v) * ii + left;
+       +       vfmadd132sd %xmm9,%xmm10,%xmm1
+       +     auto const xxxx = xx[v] * xx[v];
+       +       vmulsd      %xmm0,%xmm0,%xmm4
+       +     auto const xxyy = xx[v] * yy[v];
+       +       vmulsd      %xmm3,%xmm0,%xmm3
+       +     newxx[v] = xxxx - yyyy + x0;
+ 18.09 +       vsubsd      %xmm5,%xmm4,%xmm2
+       +     newyy[v] = 2 * xxyy + y0;
+       +       vfmadd132sd %xmm8,%xmm6,%xmm3
+       +     newxx[v] = xxxx - yyyy + x0;
+  0.28 +       vaddsd      %xmm1,%xmm2,%xmm1
+       +     yy[v] = newyy[v];
+  0.03 +       vmovsd      %xmm3,(%rcx)
+       +     xx[v] = newxx[v];
+ 13.50 +       vmovsd      %xmm1,(%rax)
+       +     if (!finished[v] && __builtin_expect(dis > 4, 0)) {
+  1.14 +     ↓ jne         19c
+       +     auto const dis = xxxx + yyyy;
+  0.03 +       vaddsd      %xmm5,%xmm4,%xmm4
+       +     if (!finished[v] && __builtin_expect(dis > 4, 0)) {
+       +       vcomisd     %xmm11,%xmm4
 ```
 
 从中我们可以十分清楚的看到`-O3`优化之后代码被改写成什么样子、指令的规整程度等，都会影响程序的性能。
