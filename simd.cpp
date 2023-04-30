@@ -10,6 +10,8 @@
 
 const int MAX_ITER = 10000;
 
+const int vec_size = 8;
+
 void write_png(const char *filename, const size_t width, const size_t height,
                const int *buffer) {
   FILE *fp = fopen(filename, "wb");
@@ -70,28 +72,55 @@ int main(int argc, char **argv) {
   double jj = ((upper - lower) / height);
   double ii = ((right - left) / width);
 
-  omp_set_num_threads(8);
 #pragma omp parallel for
   for (int j = 0; j < height; ++j) {
-    for (int i = 0; i < width; i += 8) { // tiling to 8.
-#pragma omp simd
-      for (int t = 0; t < 8; ++t) {
-        double y0 = j * jj + lower;
-        double x0 = (i + t) * ii + left;
+    for (int i = 0; i < width; i += vec_size) { // tiling to 8.
 
-        int repeats = 0;
-        double x = 0;
-        double y = 0;
-        double length_squared = 0;
-        for (;repeats < MAX_ITER; ++repeats) {
-          double temp = x * x - y * y + x0;
-          y = 2 * x * y + y0;
-          x = temp;
-          length_squared = x * x + y * y;
-          if (__builtin_expect(length_squared > 4, 1)) // after benchmark it's likely to be true.
-            break;
+      // 这里我们每4个为一组进行计算
+      alignas(vec_size * sizeof(char)) char finished[vec_size] = {0};
+
+      alignas(vec_size * sizeof(double)) double xx[vec_size] = {0.0};
+      alignas(vec_size * sizeof(double)) double yy[vec_size] = {0.0};
+
+      alignas(vec_size * sizeof(double)) double newxx[vec_size];
+      alignas(vec_size * sizeof(double)) double newyy[vec_size];
+
+      auto const image_p = image + j * width + i;
+
+      for (size_t repeats = 0; repeats < MAX_ITER; ++repeats) {
+
+#pragma omp simd aligned(finished, xx, yy, newxx, newyy)
+        for (size_t v = 0; v < vec_size; ++v) {
+          double y0 = j * jj + lower;
+          double x0 = (i + v) * ii + left;
+
+          auto const xxxx = xx[v] * xx[v];
+          auto const yyyy = yy[v] * yy[v];
+          auto const xxyy = xx[v] * yy[v];
+
+          newxx[v] = xxxx - yyyy + x0;
+          newyy[v] = 2 * xxyy + y0;
+
+          xx[v] = newxx[v];
+          yy[v] = newyy[v];
+
+          auto const dis = xxxx + yyyy;
+
+          if (!finished[v] && __builtin_expect(dis > 4, 0)) {
+            finished[v] = 1;
+            image_p[v] = repeats;
+          }
         }
-        image[j * width + i + t] = repeats;
+
+        size_t all_finished = 1;
+
+        for (size_t v = 0; v < vec_size; ++v) {
+          all_finished &= finished[v];
+        }
+
+        if (all_finished) {
+          break;
+        }
       }
     }
   }
@@ -101,6 +130,6 @@ int main(int argc, char **argv) {
   printf("time elapsed: %lf\n", end_time - start_time);
 
   /* draw and cleanup */
-  // write_png(filename, width, height, image);
+  write_png(filename, width, height, image);
   free(image);
 }
